@@ -1,131 +1,150 @@
-import type { Timestamp } from "firebase/firestore"
+import type { Timestamp } from "firebase/firestore";
 
 export interface HealthData {
-  id: string
-  userId: string
-  date: string
-  heartRate: number
+  id: string;
+  userId: string;
+  date: string;
+  heartRate: number;
   bloodPressure: {
-    systolic: number
-    diastolic: number
-  }
-  sleepHours: number
-  sleepQuality: "Poor" | "Fair" | "Good" | "Excellent"
-  steps: number
-  caloriesBurned: number
-  caloriesConsumed: number
-  waterIntake: number
-  weight: number
-  mood: "Very Bad" | "Bad" | "Neutral" | "Good" | "Very Good"
-  stressLevel?: number // 1-10
-  bodyTemperature?: number // in Celsius
-  oxygenSaturation?: number // in percentage
-  glucoseLevel?: number // in mg/dL
-  notes: string
-  timestamp?: Timestamp
-  createdAt?: Timestamp
-  updatedAt?: Timestamp
+    systolic: number;
+    diastolic: number;
+  };
+  sleepHours: number;
+  sleepQuality: "Poor" | "Fair" | "Good" | "Excellent";
+  steps: number;
+  caloriesBurned: number;
+  caloriesConsumed: number;
+  waterIntake: number;
+  weight: number;
+  mood: "Very Bad" | "Bad" | "Neutral" | "Good" | "Very Good";
+  stressLevel?: number; // 1-10
+  bodyTemperature?: number; // in Celsius
+  oxygenSaturation?: number; // in percentage
+  glucoseLevel?: number; // in mg/dL
+  notes: string;
+  timestamp?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type HealthMetric = keyof Omit<
   HealthData,
-  "id" | "userId" | "date" | "notes" | "bloodPressure" | "timestamp" | "createdAt" | "updatedAt"
->
+  | "id"
+  | "userId"
+  | "date"
+  | "notes"
+  | "bloodPressure"
+  | "timestamp"
+  | "createdAt"
+  | "updatedAt"
+>;
 
 export interface Goal {
-  id: string
-  userId: string
-  type: "steps" | "weight" | "sleep" | "water" | "calories" | "workout" | "custom"
-  target: number
-  unit: string
-  deadline: Timestamp
-  progress: number
-  completed: boolean
-  title: string
-  description?: string
-  createdAt?: Timestamp
-  updatedAt?: Timestamp
+  id: string;
+  userId: string;
+  type:
+    | "steps"
+    | "weight"
+    | "sleep"
+    | "water"
+    | "calories"
+    | "workout"
+    | "custom";
+  target: number;
+  unit: string;
+  deadline: Timestamp;
+  progress: number;
+  completed: boolean;
+  title: string;
+  description?: string;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface Medication {
-  id: string
-  userId: string
-  name: string
-  dosage: string
-  frequency: "daily" | "twice-daily" | "weekly" | "monthly" | "as-needed" | "custom"
-  customFrequency?: string
-  nextDose: Timestamp
-  lastTaken?: Timestamp
-  instructions?: string
-  remainingDoses?: number
-  refillReminder?: boolean
-  refillReminderDate?: Timestamp
-  createdAt?: Timestamp
-  updatedAt?: Timestamp
+  id: string;
+  userId: string;
+  name: string;
+  dosage: string;
+  frequency:
+    | "daily"
+    | "twice-daily"
+    | "weekly"
+    | "monthly"
+    | "as-needed"
+    | "custom";
+  customFrequency?: string;
+  nextDose: Timestamp;
+  lastTaken?: Timestamp;
+  instructions?: string;
+  remainingDoses?: number;
+  refillReminder?: boolean;
+  refillReminderDate?: Timestamp;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface FoodEntry {
-  id: string
-  userId: string
-  name: string
-  calories: number
-  protein?: number
-  carbs?: number
-  fat?: number
-  mealType: "breakfast" | "lunch" | "dinner" | "snack"
-  timestamp: Timestamp
-  image?: string
+  id: string;
+  userId: string;
+  name: string;
+  calories: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  mealType: "breakfast" | "lunch" | "dinner" | "snack";
+  timestamp: Date;
+  image?: string;
 }
 
 export interface WorkoutSession {
-  id: string
-  userId: string
-  type: "cardio" | "strength" | "flexibility" | "sports" | "other"
-  name: string
-  duration: number // in minutes
-  caloriesBurned: number
-  intensity: "low" | "moderate" | "high"
-  notes?: string
-  exercises?: WorkoutExercise[]
-  timestamp: Timestamp
+  id: string;
+  userId: string;
+  type: "cardio" | "strength" | "flexibility" | "sports" | "other";
+  name: string;
+  duration: number; // in minutes
+  caloriesBurned: number;
+  intensity: "low" | "moderate" | "high";
+  notes?: string;
+  exercises?: WorkoutExercise[];
+  timestamp: Date;
 }
 
 export interface WorkoutExercise {
-  name: string
-  sets?: number
-  reps?: number
-  weight?: number
-  duration?: number // in minutes
-  distance?: number // in km
+  name: string;
+  sets?: number;
+  reps?: number;
+  weight?: number;
+  duration?: number; // in minutes
+  distance?: number; // in km
 }
 
 export interface Achievement {
-  id: string
-  userId: string
-  title: string
-  description: string
-  icon: string
-  unlockedAt: Timestamp
-  category: "steps" | "water" | "sleep" | "workout" | "weight" | "streak"
-  level: "bronze" | "silver" | "gold" | "platinum"
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt: Date;
+  category: "steps" | "water" | "sleep" | "workout" | "weight" | "streak";
+  level: "bronze" | "silver" | "gold" | "platinum";
 }
 
 export interface UserSettings {
-  userId: string
-  units: "metric" | "imperial"
-  darkMode: boolean
-  notificationsEnabled: boolean
+  userId: string;
+  units: "metric" | "imperial";
+  darkMode: boolean;
+  notificationsEnabled: boolean;
   reminderTimes: {
-    waterReminder?: string
-    medicationReminder?: string
-    sleepReminder?: string
-    workoutReminder?: string
-  }
+    waterReminder?: string;
+    medicationReminder?: string;
+    sleepReminder?: string;
+    workoutReminder?: string;
+  };
   healthGoals: {
-    steps: number
-    sleep: number
-    water: number
-    calories: number
-  }
+    steps: number;
+    sleep: number;
+    water: number;
+    calories: number;
+  };
 }
-

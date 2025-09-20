@@ -145,11 +145,19 @@ export default function HealthcareLanding() {
                     onClick={() => setIsOpen(!isOpen)}
                     className="h-10 w-10 rounded-full overflow-hidden border border-gray-300 focus:outline-none"
                   >
-                    <img
-                      src={user?.photoURL || ""}
-                      alt={user?.displayName || "User"}
-                      className="h-full w-full object-cover"
-                    />
+                    {/* Avoid rendering an <img> with empty src which can trigger a reload; render only when photoURL exists */}
+                    {user?.photoURL ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={user.photoURL}
+                        alt={user?.displayName || "User"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-slate-100 text-slate-500">
+                        <User />
+                      </div>
+                    )}
                   </button>
 
                   {isOpen && (

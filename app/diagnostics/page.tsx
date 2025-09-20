@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { addDiagnosticResult } from "@/lib/firebase-service";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -916,25 +916,20 @@ function HeartRiskAnalysis() {
 
       const data = await response.json();
       setResult(data.result || data.error);
-      // Save diagnostic result to Firestore (non-blocking)
+      // Save heart diagnostic result to Firestore (non-blocking)
       try {
-        await addDiagnosticResult({
-          type: "diabetes",
-          inputs: apiData,
-          result: data,
-          sentence: buildDiagnosticSentence("diabetes", apiData, data),
-        });
-      } catch (err) {
-        console.error("Failed to save diabetes diagnostic result:", err);
-      }
-      // Save diagnostic result to Firestore (non-blocking)
-      try {
-        await addDiagnosticResult({
+        const payload = {
           type: "heart",
           inputs: apiData,
           result: data,
           sentence: buildDiagnosticSentence("heart", apiData, data),
-        });
+        };
+        console.debug(
+          "Saving heart diagnostic. uid=",
+          auth.currentUser?.uid,
+          payload
+        );
+        await addDiagnosticResult(payload);
       } catch (err) {
         console.error("Failed to save heart diagnostic result:", err);
       }

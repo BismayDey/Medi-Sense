@@ -9,8 +9,10 @@ export default function ChatbotWidget({
 }: Props) {
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // prevent double injection
-    if ((window as any).chatbotWidgetInjected) return;
+
+    // Use a namespaced flag to avoid collisions and re-declarations
+    const INJECT_FLAG = "__medisense_chatbot_widget_injected_v1";
+    if ((window as any)[INJECT_FLAG]) return;
 
     const js = document.createElement("script");
     js.src = "https://chatbuild.vercel.app/widget.min.js";
@@ -18,16 +20,15 @@ export default function ChatbotWidget({
     js.dataset.botId = botId;
     document.head.appendChild(js);
 
-    (window as any).chatbotWidgetInjected = true;
+    // mark injected without exposing other globals like API_ENDPOINT
+    (window as any)[INJECT_FLAG] = true;
 
-    return () => {
-      // optional cleanup: remove injected script if you want
-      const existing = document.querySelector(
-        `script[src=\"https://chatbuild.vercel.app/widget.min.js\"]`
-      );
-      if (existing) existing.remove();
-      delete (window as any).chatbotWidgetInjected;
-    };
+    // Do not remove the injected script or unset the flag on cleanup. Removing
+    // the script element does not undo globals created by the widget and
+    // un-setting the flag allows re-injection which leads to duplicate
+    // declarations (e.g. API_ENDPOINT). Keep the widget present for the
+    // lifetime of the page session.
+    return () => {};
   }, [botId]);
 
   return null;

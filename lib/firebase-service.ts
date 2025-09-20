@@ -350,25 +350,47 @@ export const subscribeToGoals = (
 };
 
 // Diagnostic Results Operations
-export const addDiagnosticResult = async (
-  result: {
-    type: string;
-    inputs?: Record<string, any>;
-    result: any;
-    notes?: string;
-    sentence?: string;
-  }
-): Promise<string> => {
+export const addDiagnosticResult = async (result: {
+  type: string;
+  inputs?: Record<string, any>;
+  result: any;
+  notes?: string;
+  sentence?: string;
+}): Promise<string> => {
   try {
-    const userId = getCurrentUserId();
+    // Ensure auth state has settled. Sometimes auth.currentUser is null for a short
+    // time immediately after sign-in in SPA flows. Wait up to 3s for a user.
+    let userId = getCurrentUserId();
+    if (!userId) {
+      userId = await new Promise<string | null>((resolve) => {
+        const start = Date.now();
+        const unsubscribe = auth.onAuthStateChanged((u) => {
+          if (u) {
+            resolve(u.uid);
+            unsubscribe();
+          } else if (Date.now() - start > 3000) {
+            // timeout
+            resolve(null);
+            unsubscribe();
+          }
+        });
+      });
+    }
+
     if (!userId) throw new Error("User not authenticated");
 
+    console.debug(
+      "addDiagnosticResult: saving diagnostic for user:",
+      userId,
+      result?.type
+    );
     const docRef = await addDoc(collection(db, DIAGNOSTIC_RESULTS_COLLECTION), {
       ...result,
       userId,
       timestamp: serverTimestamp(),
       createdAt: serverTimestamp(),
     });
+    console.debug("addDiagnosticResult: saved with id:", docRef.id);
     return docRef.id;
   } catch (error) {
     console.error("Error adding diagnostic result: ", error);
@@ -392,7 +414,11 @@ export const getDiagnosticResults = async (days = 30) => {
     startDate.setDate(startDate.getDate() - days);
 
     return querySnapshot.docs
-      .map((doc) => ({ id: doc.id, ...doc.data(), timestamp: doc.data().timestamp.toDate() }))
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp.toDate(),
+      }))
       .filter((item) => item.timestamp >= startDate);
   } catch (error) {
     console.error("Error getting diagnostic results: ", error);
@@ -400,7 +426,10 @@ export const getDiagnosticResults = async (days = 30) => {
   }
 };
 
-export const subscribeToDiagnosticResults = (days = 30, callback: (data: any[]) => void): (() => void) => {
+export const subscribeToDiagnosticResults = (
+  days = 30,
+  callback: (data: any[]) => void
+): (() => void) => {
   try {
     const userId = getCurrentUserId();
     if (!userId) {
@@ -421,7 +450,11 @@ export const subscribeToDiagnosticResults = (days = 30, callback: (data: any[]) 
         cutoffDate.setDate(cutoffDate.getDate() - days);
 
         const data = snapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data(), timestamp: doc.data().timestamp.toDate() }))
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            timestamp: doc.data().timestamp.toDate(),
+          }))
           .filter((item) => item.timestamp >= cutoffDate);
 
         callback(data);
