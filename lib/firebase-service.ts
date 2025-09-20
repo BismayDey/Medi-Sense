@@ -42,6 +42,7 @@ const MEDICATIONS_COLLECTION = "medications";
 const FOOD_DIARY_COLLECTION = "foodDiary";
 const WORKOUTS_COLLECTION = "workouts";
 const ACHIEVEMENTS_COLLECTION = "achievements";
+const DIAGNOSTIC_RESULTS_COLLECTION = "diagnosticResults";
 
 // Health Data Operations
 export const addHealthData = async (
@@ -343,6 +344,95 @@ export const subscribeToGoals = (
     );
   } catch (error) {
     console.error("Error setting up goals subscription: ", error);
+    callback([]);
+    return () => {};
+  }
+};
+
+// Diagnostic Results Operations
+export const addDiagnosticResult = async (
+  result: {
+    type: string;
+    inputs?: Record<string, any>;
+    result: any;
+    notes?: string;
+    sentence?: string;
+  }
+): Promise<string> => {
+  try {
+    const userId = getCurrentUserId();
+    if (!userId) throw new Error("User not authenticated");
+
+    const docRef = await addDoc(collection(db, DIAGNOSTIC_RESULTS_COLLECTION), {
+      ...result,
+      userId,
+      timestamp: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding diagnostic result: ", error);
+    throw error;
+  }
+};
+
+export const getDiagnosticResults = async (days = 30) => {
+  try {
+    const userId = getCurrentUserId();
+    if (!userId) return [];
+
+    const q = query(
+      collection(db, DIAGNOSTIC_RESULTS_COLLECTION),
+      where("userId", "==", userId),
+      orderBy("timestamp", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    return querySnapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data(), timestamp: doc.data().timestamp.toDate() }))
+      .filter((item) => item.timestamp >= startDate);
+  } catch (error) {
+    console.error("Error getting diagnostic results: ", error);
+    return [];
+  }
+};
+
+export const subscribeToDiagnosticResults = (days = 30, callback: (data: any[]) => void): (() => void) => {
+  try {
+    const userId = getCurrentUserId();
+    if (!userId) {
+      callback([]);
+      return () => {};
+    }
+
+    const q = query(
+      collection(db, DIAGNOSTIC_RESULTS_COLLECTION),
+      where("userId", "==", userId),
+      orderBy("timestamp", "desc")
+    );
+
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
+
+        const data = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data(), timestamp: doc.data().timestamp.toDate() }))
+          .filter((item) => item.timestamp >= cutoffDate);
+
+        callback(data);
+      },
+      (error) => {
+        console.error("Error subscribing to diagnostic results: ", error);
+        callback([]);
+      }
+    );
+  } catch (error) {
+    console.error("Error setting up diagnostic results subscription: ", error);
     callback([]);
     return () => {};
   }

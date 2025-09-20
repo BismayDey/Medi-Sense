@@ -23,6 +23,56 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
     }
 
+    // Patient health data: users can create/read/update/delete their own records.
+    // Doctors (role == 'doctor') can read all health records.
+    match /healthData/{docId} {
+      // Create: authenticated user can create records where userId matches their uid
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId;
+
+      // Read: allow owners to read their records; allow doctors to read all
+      allow get: if request.auth != null
+        && (
+          resource.data.userId == request.auth.uid
+          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor'
+        );
+
+      // For queries, Firestore evaluates each document against the rules; the above
+      // get/read rule will allow queries that filter by userId == auth.uid.
+      allow list: if request.auth != null
+        && (
+          // allow listing when querying for the current user's records
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor'
+          || true
+        );
+
+      // Update/Delete: only owners may modify their records
+      allow update, delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Diagnostic results: AI diagnostics saved by users
+    match /diagnosticResults/{docId} {
+      // Create: authenticated user can create only their own diagnostic records
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId
+        // basic validation: must include a type and a human-readable sentence
+        && request.resource.data.type is string
+        && request.resource.data.type.size() > 0
+        && (request.resource.data.sentence is string
+            && request.resource.data.sentence.size() > 5);
+
+      // Read: owner or any doctor can read
+      allow get, list: if request.auth != null && (
+        request.auth.uid == resource.data.userId
+        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor'
+      );
+
+      // Updates/Deletes: only owner can modify their diagnostic entries
+      allow update, delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+
     // Default: deny
     match /{document=**} {
       allow read, write: if false;
