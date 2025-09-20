@@ -9,7 +9,7 @@
 
 # production
 /build
-
+firebase.rules
 # debug
 npm-debug.log*
 yarn-debug.log*

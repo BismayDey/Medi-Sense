@@ -260,17 +260,10 @@ export default function HealthcareLanding() {
                   </div>
                   <div className="flex flex-col gap-2 min-[400px]:flex-row">
                     <Link
-                      href="/PresAI"
+                      href="/diagnostics"
                       className="bg-[#0284c7] hover:bg-[#0369a1] px-4 py-2 rounded-sm text-white inline-flex items-center gap-2 shadow-sm font-bold"
                     >
-                      X
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                    <Link
-                      href="/PresAI"
-                      className="bg-[#0284c7] hover:bg-[#0369a1] px-4 py-2 rounded-sm text-white inline-flex items-center gap-2 shadow-sm font-bold"
-                    >
-                      Analyze Your Prescription
+                      Analyze Your Health
                       <ChevronRight className="h-4 w-4" />
                     </Link>
                   </div>
