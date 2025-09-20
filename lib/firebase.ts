@@ -4,14 +4,13 @@ import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBx-3PuQOy3Wcy2JXNEpZv6caDi-ekATQg",
-  authDomain: "mindx-e98ff.firebaseapp.com",
-  databaseURL:
-    "https://mindx-e98ff-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "mindx-e98ff",
-  storageBucket: "mindx-e98ff.firebasestorage.app",
-  messagingSenderId: "731403426879",
-  appId: "1:731403426879:web:6c48376164989c9d52ec8a",
+  apiKey: "AIzaSyCd80w32SFJoCN7LJnW38gbFgk_szUoukk",
+  authDomain: "medisense-77c10.firebaseapp.com",
+  projectId: "medisense-77c10",
+  storageBucket: "medisense-77c10.firebasestorage.app",
+  messagingSenderId: "731215002149",
+  appId: "1:731215002149:web:31e8d22db8d6b166ff5dcc",
+  measurementId: "G-R1HVDP0066",
 };
 
 const app = initializeApp(firebaseConfig);

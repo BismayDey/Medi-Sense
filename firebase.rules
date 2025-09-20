@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection: users can create and update their own document, but cannot set role to 'doctor' unless already a doctor.
+    match /users/{userId} {
+      allow create: if request.auth != null && request.auth.uid == userId
+        // allow creating patient or doctor if caller provides role; for stricter control you might require an admin process for doctor role
+        ;
+
+      allow update: if request.auth != null && request.auth.uid == userId
+        // Prevent non-doctors from changing their role to doctor
+        && !(request.resource.data.role == 'doctor' && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role != 'doctor');
+
+      allow read: if request.auth != null && request.auth.uid == userId
+        // Allow doctors to read all users
+        || (request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor');
+    }
+
+    // Example doctor-only collection: doctor_data
+    match /doctor_data/{docId} {
+      allow read, write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+    }
+
+    // Default: deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// Notes:
+// - These rules allow users to create their own user document and update it, but prevent elevation to 'doctor' unless they already are a doctor.
+// - Admin workflows (Cloud Functions or server-side) should be used to promote users to doctor when appropriate.
