@@ -725,9 +725,6 @@ export default function HealthPredictor() {
     );
   };
 
-  // Normalize prediction strings coming from different APIs so the UI
-  // can consistently show a Yes/No result. Many APIs return 'No' or
-  // '0' or other truthy/falsey strings — handle common cases here.
   const isNegativePrediction = (pred?: string | null) => {
     if (!pred) return false;
     const s = String(pred).trim().toLowerCase();
@@ -2442,7 +2439,7 @@ export default function HealthPredictor() {
                                 <p className="text-slate-600">
                                   {`Prediction: ${formatYesNo(
                                     heartResult.prediction
-                                  )}  (Confidence: ${heartResult.confidence})`}
+                                  )} `}
                                 </p>
                               </div>
                             </div>
@@ -2604,9 +2601,7 @@ export default function HealthPredictor() {
                                 <p className="text-slate-600">
                                   {`Prediction: ${formatYesNo(
                                     diabetesResult.prediction
-                                  )}  (Confidence: ${
-                                    diabetesResult.confidence
-                                  })`}
+                                  )}  `}
                                 </p>
                               </div>
                             </div>
