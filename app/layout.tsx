@@ -3,7 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Health Track",
+  title: "MediSense",
   description: "Created for health care",
 };
 
