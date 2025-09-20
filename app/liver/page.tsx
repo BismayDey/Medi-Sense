@@ -72,28 +72,6 @@ type KidneyFormData = {
   HemoglobinLevels: string;
 };
 
-type HeartFormData = {
-  age: string;
-  gender: string;
-  cp: string;
-  trestbps: string;
-  chol: string;
-  restecg: string;
-  thalach: string;
-  exang: string;
-  oldpeak: string;
-  slope: string;
-  ca: string;
-};
-
-type DiabetesFormData = {
-  glucose: string;
-  BP: string;
-  insulin: string;
-  BMI: string;
-  age: string;
-};
-
 type PredictionResult = {
   prediction: string;
   confidence: string;
@@ -284,9 +262,9 @@ const AnimatedCheckmark = () => {
 };
 
 export default function HealthPredictor() {
-  const [activePredictor, setActivePredictor] = useState<
-    "liver" | "kidney" | "heart" | "diabetes"
-  >("liver");
+  const [activePredictor, setActivePredictor] = useState<"liver" | "kidney">(
+    "liver"
+  );
 
   const [liverFormData, setLiverFormData] = useState<LiverFormData>({
     age: "",
@@ -310,34 +288,8 @@ export default function HealthPredictor() {
     HemoglobinLevels: "",
   });
 
-  const [heartFormData, setHeartFormData] = useState<HeartFormData>({
-    age: "",
-    gender: "",
-    cp: "",
-    trestbps: "",
-    chol: "",
-    restecg: "",
-    thalach: "",
-    exang: "",
-    oldpeak: "",
-    slope: "",
-    ca: "",
-  });
-
-  const [diabetesFormData, setDiabetesFormData] = useState<DiabetesFormData>({
-    glucose: "",
-    BP: "",
-    insulin: "",
-    BMI: "",
-    age: "",
-  });
-
   const [liverResult, setLiverResult] = useState<PredictionResult | null>(null);
   const [kidneyResult, setKidneyResult] = useState<PredictionResult | null>(
-    null
-  );
-  const [heartResult, setHeartResult] = useState<PredictionResult | null>(null);
-  const [diabetesResult, setDiabetesResult] = useState<PredictionResult | null>(
     null
   );
   const [isLoading, setIsLoading] = useState(false);
@@ -358,32 +310,14 @@ export default function HealthPredictor() {
       ).length;
       const totalFields = Object.keys(liverFormData).length;
       setFormProgress((filledFields / totalFields) * 100);
-    } else if (activePredictor === "kidney") {
+    } else {
       const filledFields = Object.values(kidneyFormData).filter(
         (value) => value !== ""
       ).length;
       const totalFields = Object.keys(kidneyFormData).length;
       setFormProgress((filledFields / totalFields) * 100);
-    } else if (activePredictor === "heart") {
-      const filledFields = Object.values(heartFormData).filter(
-        (value) => value !== ""
-      ).length;
-      const totalFields = Object.keys(heartFormData).length;
-      setFormProgress((filledFields / totalFields) * 100);
-    } else if (activePredictor === "diabetes") {
-      const filledFields = Object.values(diabetesFormData).filter(
-        (value) => value !== ""
-      ).length;
-      const totalFields = Object.keys(diabetesFormData).length;
-      setFormProgress((filledFields / totalFields) * 100);
     }
-  }, [
-    liverFormData,
-    kidneyFormData,
-    heartFormData,
-    diabetesFormData,
-    activePredictor,
-  ]);
+  }, [liverFormData, kidneyFormData, activePredictor]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -402,16 +336,6 @@ export default function HealthPredictor() {
   const handleKidneyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setKidneyFormData((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handleHeartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setHeartFormData((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handleDiabetesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setDiabetesFormData((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleLiverSubmit = async (e: React.FormEvent) => {
@@ -554,126 +478,6 @@ export default function HealthPredictor() {
     }
   };
 
-  const handleHeartSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setHeartResult(null);
-
-    if (!validateHeartForm()) {
-      setIsLoading(false);
-      setError("Please fill in all fields with valid values.");
-      return;
-    }
-
-    const data = {
-      age: Number.parseInt(heartFormData.age),
-      gender: Number.parseInt(heartFormData.gender),
-      cp: Number.parseInt(heartFormData.cp),
-      trestbps: Number.parseInt(heartFormData.trestbps),
-      chol: Number.parseInt(heartFormData.chol),
-      restecg: Number.parseInt(heartFormData.restecg),
-      thalach: Number.parseInt(heartFormData.thalach),
-      exang: Number.parseInt(heartFormData.exang),
-      oldpeak: Number.parseFloat(heartFormData.oldpeak),
-      slope: Number.parseInt(heartFormData.slope),
-      ca: Number.parseInt(heartFormData.ca),
-    };
-
-    try {
-      const response = await fetch("/api/heart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) throw new Error("Failed to get prediction");
-
-      const resultData = await response.json();
-      setHeartResult(resultData);
-      setHealthScore(
-        resultData.prediction?.includes("No")
-          ? Math.floor(Math.random() * 20 + 80)
-          : Math.floor(Math.random() * 30 + 40)
-      );
-    } catch (err) {
-      console.error("API call failed, using fallback simulation", err);
-      await new Promise((r) => setTimeout(r, 2000));
-      const resultData = {
-        prediction:
-          Math.random() > 0.5
-            ? "Heart Condition Detected"
-            : "No Heart Condition Detected",
-        confidence: `${(Math.random() * 30 + 70).toFixed(2)}%`,
-      };
-      setHeartResult(resultData);
-      setHealthScore(
-        resultData.prediction.includes("No")
-          ? Math.floor(Math.random() * 20 + 80)
-          : Math.floor(Math.random() * 30 + 40)
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDiabetesSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setDiabetesResult(null);
-
-    if (!validateDiabetesForm()) {
-      setIsLoading(false);
-      setError("Please fill in all fields with valid values.");
-      return;
-    }
-
-    const data = {
-      glucose: Number.parseInt(diabetesFormData.glucose),
-      BP: Number.parseInt(diabetesFormData.BP),
-      insulin: Number.parseInt(diabetesFormData.insulin),
-      BMI: Number.parseFloat(diabetesFormData.BMI),
-      age: Number.parseInt(diabetesFormData.age),
-    };
-
-    try {
-      const response = await fetch("/api/diabetes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) throw new Error("Failed to get prediction");
-
-      const resultData = await response.json();
-      setDiabetesResult(resultData);
-      setHealthScore(
-        resultData.prediction?.includes("No")
-          ? Math.floor(Math.random() * 20 + 80)
-          : Math.floor(Math.random() * 30 + 40)
-      );
-    } catch (err) {
-      console.error("API call failed, using fallback simulation", err);
-      await new Promise((r) => setTimeout(r, 2000));
-      const resultData = {
-        prediction:
-          Math.random() > 0.5
-            ? "Diabetes Risk Detected"
-            : "No Diabetes Risk Detected",
-        confidence: `${(Math.random() * 30 + 70).toFixed(2)}%`,
-      };
-      setDiabetesResult(resultData);
-      setHealthScore(
-        resultData.prediction.includes("No")
-          ? Math.floor(Math.random() * 20 + 80)
-          : Math.floor(Math.random() * 30 + 40)
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const validateLiverForm = () => {
     return (
       liverFormData.age !== "" &&
@@ -698,47 +502,6 @@ export default function HealthPredictor() {
       kidneyFormData.HemoglobinLevels !== ""
     );
   };
-
-  const validateHeartForm = () => {
-    return (
-      heartFormData.age !== "" &&
-      heartFormData.gender !== "" &&
-      heartFormData.cp !== "" &&
-      heartFormData.trestbps !== "" &&
-      heartFormData.chol !== "" &&
-      heartFormData.restecg !== "" &&
-      heartFormData.thalach !== "" &&
-      heartFormData.exang !== "" &&
-      heartFormData.oldpeak !== "" &&
-      heartFormData.slope !== "" &&
-      heartFormData.ca !== ""
-    );
-  };
-
-  const validateDiabetesForm = () => {
-    return (
-      diabetesFormData.glucose !== "" &&
-      diabetesFormData.BP !== "" &&
-      diabetesFormData.insulin !== "" &&
-      diabetesFormData.BMI !== "" &&
-      diabetesFormData.age !== ""
-    );
-  };
-
-  const isNegativePrediction = (pred?: string | null) => {
-    if (!pred) return false;
-    const s = String(pred).trim().toLowerCase();
-    return (
-      s === "0" ||
-      s === "no" ||
-      s === "negative" ||
-      s === "false" ||
-      s.includes("no")
-    );
-  };
-
-  const formatYesNo = (pred?: string | null) =>
-    isNegativePrediction(pred) ? "No" : "Yes";
 
   const resetLiverForm = () => {
     setLiverFormData({
@@ -768,38 +531,6 @@ export default function HealthPredictor() {
       HemoglobinLevels: "",
     });
     setKidneyResult(null);
-    setError(null);
-    setActiveSection(0);
-  };
-
-  const resetHeartForm = () => {
-    setHeartFormData({
-      age: "",
-      gender: "",
-      cp: "",
-      trestbps: "",
-      chol: "",
-      restecg: "",
-      thalach: "",
-      exang: "",
-      oldpeak: "",
-      slope: "",
-      ca: "",
-    });
-    setHeartResult(null);
-    setError(null);
-    setActiveSection(0);
-  };
-
-  const resetDiabetesForm = () => {
-    setDiabetesFormData({
-      glucose: "",
-      BP: "",
-      insulin: "",
-      BMI: "",
-      age: "",
-    });
-    setDiabetesResult(null);
     setError(null);
     setActiveSection(0);
   };
@@ -837,37 +568,6 @@ export default function HealthPredictor() {
       title: "Vital Signs & Electrolytes",
       icon: <Activity className="w-5 h-5" />,
       fields: ["SerumElectrolytesSodium", "SystolicBP", "HemoglobinLevels"],
-    },
-  ];
-
-  const heartSections = [
-    {
-      title: "Personal & ECG",
-      icon: <Heart className="w-5 h-5" />,
-      fields: ["age", "gender", "restecg", "thalach"],
-    },
-    {
-      title: "Symptoms & Measurements",
-      icon: <Activity className="w-5 h-5" />,
-      fields: ["cp", "trestbps", "chol", "exang"],
-    },
-    {
-      title: "Exercise & Imaging",
-      icon: <Microscope className="w-5 h-5" />,
-      fields: ["oldpeak", "slope", "ca"],
-    },
-  ];
-
-  const diabetesSections = [
-    {
-      title: "Blood Parameters",
-      icon: <Microscope className="w-5 h-5" />,
-      fields: ["glucose", "insulin", "BMI"],
-    },
-    {
-      title: "Vitals",
-      icon: <Activity className="w-5 h-5" />,
-      fields: ["BP", "age"],
     },
   ];
 
@@ -1523,7 +1223,7 @@ export default function HealthPredictor() {
           className="mb-6 bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100"
         >
           <div className="p-1">
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-2 gap-1">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -1605,89 +1305,6 @@ export default function HealthPredictor() {
                   </div>
                 </div>
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  setActivePredictor("heart");
-                  setActiveSection(0);
-                  setError(null);
-                }}
-                className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl transition-all ${
-                  activePredictor === "heart"
-                    ? "bg-gradient-to-r from-rose-500 to-rose-400 text-white shadow-md"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    activePredictor === "heart" ? "bg-white/20" : "bg-rose-100"
-                  }`}
-                >
-                  <Heart
-                    className={`w-6 h-6 ${
-                      activePredictor === "heart"
-                        ? "text-white"
-                        : "text-rose-600"
-                    }`}
-                  />
-                </div>
-                <div className="text-center">
-                  <div className="font-medium">Heart Health</div>
-                  <div
-                    className={`text-xs ${
-                      activePredictor === "heart"
-                        ? "text-white/80"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    Assess heart risk
-                  </div>
-                </div>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  setActivePredictor("diabetes");
-                  setActiveSection(0);
-                  setError(null);
-                }}
-                className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl transition-all ${
-                  activePredictor === "diabetes"
-                    ? "bg-gradient-to-r from-amber-500 to-amber-400 text-white shadow-md"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    activePredictor === "diabetes"
-                      ? "bg-white/20"
-                      : "bg-amber-100"
-                  }`}
-                >
-                  <Microscope
-                    className={`w-6 h-6 ${
-                      activePredictor === "diabetes"
-                        ? "text-white"
-                        : "text-amber-600"
-                    }`}
-                  />
-                </div>
-                <div className="text-center">
-                  <div className="font-medium">Diabetes</div>
-                  <div
-                    className={`text-xs ${
-                      activePredictor === "diabetes"
-                        ? "text-white/80"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    Assess diabetes risk
-                  </div>
-                </div>
-              </motion.button>
             </div>
           </div>
         </motion.div>
@@ -1707,22 +1324,13 @@ export default function HealthPredictor() {
               </h3>
             </div>
             <div className="text-xs text-gray-500">
-              {activePredictor === "liver" &&
-                `${
-                  Object.values(liverFormData).filter((v) => v !== "").length
-                }/${Object.keys(liverFormData).length} fields completed`}
-              {activePredictor === "kidney" &&
-                `${
-                  Object.values(kidneyFormData).filter((v) => v !== "").length
-                }/${Object.keys(kidneyFormData).length} fields completed`}
-              {activePredictor === "heart" &&
-                `${
-                  Object.values(heartFormData).filter((v) => v !== "").length
-                }/${Object.keys(heartFormData).length} fields completed`}
-              {activePredictor === "diabetes" &&
-                `${
-                  Object.values(diabetesFormData).filter((v) => v !== "").length
-                }/${Object.keys(diabetesFormData).length} fields completed`}
+              {activePredictor === "liver"
+                ? `${
+                    Object.values(liverFormData).filter((v) => v !== "").length
+                  }/${Object.keys(liverFormData).length} fields completed`
+                : `${
+                    Object.values(kidneyFormData).filter((v) => v !== "").length
+                  }/${Object.keys(kidneyFormData).length} fields completed`}
             </div>
           </div>
           <ProgressBar value={formProgress} />
@@ -1737,17 +1345,10 @@ export default function HealthPredictor() {
             className="bg-white rounded-2xl shadow-sm p-6 h-fit border border-gray-100"
           >
             <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              {activePredictor === "liver" && (
+              {activePredictor === "liver" ? (
                 <Lungs className="w-5 h-5 text-teal-600" />
-              )}
-              {activePredictor === "kidney" && (
-                <Kidney className="w-5 h-5 text-cyan-600" />
-              )}
-              {activePredictor === "heart" && (
-                <Heart className="w-5 h-5 text-rose-600" />
-              )}
-              {activePredictor === "diabetes" && (
-                <Microscope className="w-5 h-5 text-amber-600" />
+              ) : (
+                <Kidney className="w-5 h-5 text-teal-600" />
               )}
               <span>Assessment Steps</span>
             </h2>
@@ -1755,11 +1356,7 @@ export default function HealthPredictor() {
             <div className="space-y-3">
               {(activePredictor === "liver"
                 ? liverSections
-                : activePredictor === "kidney"
-                ? kidneySections
-                : activePredictor === "heart"
-                ? heartSections
-                : diabetesSections
+                : kidneySections
               ).map((section, index) => (
                 <motion.button
                   key={index}
@@ -1793,25 +1390,16 @@ export default function HealthPredictor() {
             {/* Action buttons */}
             <div className="mt-6 space-y-3">
               <button
-                onClick={(e) => {
-                  // call the appropriate submit handler
-                  if (activePredictor === "liver")
-                    return handleLiverSubmit(e as any);
-                  if (activePredictor === "kidney")
-                    return handleKidneySubmit(e as any);
-                  if (activePredictor === "heart")
-                    return handleHeartSubmit(e as any);
-                  return handleDiabetesSubmit(e as any);
-                }}
+                onClick={
+                  activePredictor === "liver"
+                    ? handleLiverSubmit
+                    : handleKidneySubmit
+                }
                 disabled={
                   isLoading ||
                   (activePredictor === "liver"
                     ? !validateLiverForm()
-                    : activePredictor === "kidney"
-                    ? !validateKidneyForm()
-                    : activePredictor === "heart"
-                    ? !validateHeartForm()
-                    : !validateDiabetesForm())
+                    : !validateKidneyForm())
                 }
                 className="w-full py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 disabled:opacity-50 font-medium"
               >
@@ -1836,12 +1424,9 @@ export default function HealthPredictor() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  if (activePredictor === "liver") return resetLiverForm();
-                  if (activePredictor === "kidney") return resetKidneyForm();
-                  if (activePredictor === "heart") return resetHeartForm();
-                  return resetDiabetesForm();
-                }}
+                onClick={
+                  activePredictor === "liver" ? resetLiverForm : resetKidneyForm
+                }
                 className="w-full bg-white border border-gray-200 text-gray-800 py-3 px-4 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 font-medium flex items-center justify-center gap-2"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -2217,405 +1802,6 @@ export default function HealthPredictor() {
                         Next Step
                         <ChevronRight className="w-4 h-4 ml-1" />
                       </motion.button>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Heart predictor content */}
-            <AnimatePresence mode="wait">
-              {activePredictor === "heart" && (
-                <motion.div
-                  key={`heart-${activeSection}`}
-                  variants={cardVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-gray-100"
-                >
-                  <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                    <Heart className="w-5 h-5 text-rose-600" />
-                    <span className="ml-2">Heart Risk Assessment</span>
-                  </h2>
-
-                  <div className="space-y-6">
-                    {!isLoading && !heartResult ? (
-                      <form onSubmit={handleHeartSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Age</label>
-                            <input
-                              id="age"
-                              type="number"
-                              value={heartFormData.age}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Gender (0=F,1=M)
-                            </label>
-                            <input
-                              id="gender"
-                              type="number"
-                              value={heartFormData.gender}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Chest Pain Type (0-3)
-                            </label>
-                            <input
-                              id="cp"
-                              type="number"
-                              value={heartFormData.cp}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Resting BP
-                            </label>
-                            <input
-                              id="trestbps"
-                              type="number"
-                              value={heartFormData.trestbps}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Cholesterol
-                            </label>
-                            <input
-                              id="chol"
-                              type="number"
-                              value={heartFormData.chol}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Resting ECG (0-2)
-                            </label>
-                            <input
-                              id="restecg"
-                              type="number"
-                              value={heartFormData.restecg}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Max Heart Rate
-                            </label>
-                            <input
-                              id="thalach"
-                              type="number"
-                              value={heartFormData.thalach}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Exercise Induced Angina (0/1)
-                            </label>
-                            <input
-                              id="exang"
-                              type="number"
-                              value={heartFormData.exang}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Oldpeak
-                            </label>
-                            <input
-                              id="oldpeak"
-                              step="0.1"
-                              type="number"
-                              value={heartFormData.oldpeak}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Slope (0-2)
-                            </label>
-                            <input
-                              id="slope"
-                              type="number"
-                              value={heartFormData.slope}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              CA (0-3)
-                            </label>
-                            <input
-                              id="ca"
-                              type="number"
-                              value={heartFormData.ca}
-                              onChange={handleHeartChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex gap-3">
-                          <button
-                            type="submit"
-                            className="w-full py-3 px-4 rounded-lg bg-rose-500 text-white"
-                          >
-                            Analyze Heart Risk
-                          </button>
-                          <button
-                            type="button"
-                            onClick={resetHeartForm}
-                            className="w-full py-3 px-4 rounded-lg border"
-                          >
-                            Reset
-                          </button>
-                        </div>
-                      </form>
-                    ) : isLoading ? (
-                      <div className="py-8 text-center">Processing...</div>
-                    ) : (
-                      heartResult && (
-                        <div>
-                          <div className="bg-white rounded-2xl shadow-sm p-6 overflow-hidden border border-gray-100">
-                            <div className="flex items-start gap-4">
-                              <div className={`flex-shrink-0 mb-0 md:mr-6`}>
-                                <div
-                                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                                    isNegativePrediction(heartResult.prediction)
-                                      ? "bg-green-100"
-                                      : "bg-red-100"
-                                  }`}
-                                >
-                                  {isNegativePrediction(
-                                    heartResult.prediction
-                                  ) ? (
-                                    <CheckCircle
-                                      className={`h-6 w-6 text-green-600`}
-                                    />
-                                  ) : (
-                                    <AlertCircle
-                                      className={`h-6 w-6 text-red-600`}
-                                    />
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-lg">
-                                  Analysis Result
-                                </h3>
-                                <p className="text-slate-600">
-                                  {`Prediction: ${formatYesNo(
-                                    heartResult.prediction
-                                  )} `}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-4 flex gap-3">
-                            <button
-                              onClick={resetHeartForm}
-                              className="w-full py-3 px-4 rounded-lg border"
-                            >
-                              Start New Analysis
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Diabetes predictor content */}
-            <AnimatePresence mode="wait">
-              {activePredictor === "diabetes" && (
-                <motion.div
-                  key={`diabetes-${activeSection}`}
-                  variants={cardVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-gray-100"
-                >
-                  <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                    <Microscope className="w-5 h-5 text-amber-600" />
-                    <span className="ml-2">Diabetes Risk Assessment</span>
-                  </h2>
-
-                  <div className="space-y-6">
-                    {!isLoading && !diabetesResult ? (
-                      <form
-                        onSubmit={handleDiabetesSubmit}
-                        className="space-y-6"
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Glucose
-                            </label>
-                            <input
-                              id="glucose"
-                              type="number"
-                              value={diabetesFormData.glucose}
-                              onChange={handleDiabetesChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Blood Pressure
-                            </label>
-                            <input
-                              id="BP"
-                              type="number"
-                              value={diabetesFormData.BP}
-                              onChange={handleDiabetesChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Insulin
-                            </label>
-                            <input
-                              id="insulin"
-                              type="number"
-                              value={diabetesFormData.insulin}
-                              onChange={handleDiabetesChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">BMI</label>
-                            <input
-                              id="BMI"
-                              step="0.1"
-                              type="number"
-                              value={diabetesFormData.BMI}
-                              onChange={handleDiabetesChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Age</label>
-                            <input
-                              id="age"
-                              type="number"
-                              value={diabetesFormData.age}
-                              onChange={handleDiabetesChange}
-                              className="block w-full pl-3 pr-3 py-3 bg-gray-50 border border-gray-300 rounded-xl"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex gap-3">
-                          <button
-                            type="submit"
-                            className="w-full py-3 px-4 rounded-lg bg-amber-500 text-white"
-                          >
-                            Analyze Diabetes Risk
-                          </button>
-                          <button
-                            type="button"
-                            onClick={resetDiabetesForm}
-                            className="w-full py-3 px-4 rounded-lg border"
-                          >
-                            Reset
-                          </button>
-                        </div>
-                      </form>
-                    ) : isLoading ? (
-                      <div className="py-8 text-center">Processing...</div>
-                    ) : (
-                      diabetesResult && (
-                        <div>
-                          <div className="bg-white rounded-2xl shadow-sm p-6 overflow-hidden border border-gray-100">
-                            <div className="flex items-start gap-4">
-                              <div className="flex-shrink-0 mb-0 md:mr-6">
-                                <div
-                                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                                    isNegativePrediction(
-                                      diabetesResult.prediction
-                                    )
-                                      ? "bg-green-100"
-                                      : "bg-red-100"
-                                  }`}
-                                >
-                                  {isNegativePrediction(
-                                    diabetesResult.prediction
-                                  ) ? (
-                                    <CheckCircle
-                                      className={`h-6 w-6 text-green-600`}
-                                    />
-                                  ) : (
-                                    <AlertCircle
-                                      className={`h-6 w-6 text-red-600`}
-                                    />
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-lg">
-                                  Analysis Result
-                                </h3>
-                                <p className="text-slate-600">
-                                  {`Prediction: ${formatYesNo(
-                                    diabetesResult.prediction
-                                  )}  `}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-4 flex gap-3">
-                            <button
-                              onClick={resetDiabetesForm}
-                              className="w-full py-3 px-4 rounded-lg border"
-                            >
-                              Start New Analysis
-                            </button>
-                          </div>
-                        </div>
-                      )
                     )}
                   </div>
                 </motion.div>
