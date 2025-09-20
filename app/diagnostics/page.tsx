@@ -43,11 +43,17 @@ import { cn } from "@/lib/utils";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 // Build a short human-readable sentence summarizing a diagnostic result
-function buildDiagnosticSentence(type: string, inputs: any, result: any): string {
+function buildDiagnosticSentence(
+  type: string,
+  inputs: any,
+  result: any
+): string {
   try {
     if (type === "skin") {
       if (result?.predicted_class) {
-        const conf = result.confidence ? `${Number(result.confidence).toFixed(2)}%` : "unknown confidence";
+        const conf = result.confidence
+          ? `${Number(result.confidence).toFixed(2)}%`
+          : "unknown confidence";
         return `Skin analysis predicted ${result.predicted_class} with ${conf}.`;
       }
       return `Skin analysis result: ${JSON.stringify(result).slice(0, 200)}`;
@@ -55,24 +61,39 @@ function buildDiagnosticSentence(type: string, inputs: any, result: any): string
 
     if (type === "heart") {
       if (result?.riskLevel || result?.risk_score || result?.riskScore) {
-        const level = result.riskLevel || result.risk_level || result.riskScore || result.risk_score || "unknown";
-        const score = result.riskScore ?? result.risk_score ?? result.score ?? null;
-        return score ? `Heart risk: ${level} (score ${score}).` : `Heart risk: ${level}.`;
+        const level =
+          result.riskLevel ||
+          result.risk_level ||
+          result.riskScore ||
+          result.risk_score ||
+          "unknown";
+        const score =
+          result.riskScore ?? result.risk_score ?? result.score ?? null;
+        return score
+          ? `Heart risk: ${level} (score ${score}).`
+          : `Heart risk: ${level}.`;
       }
       if (typeof result === "string") return `Heart analysis: ${result}`;
-      return `Heart analysis result: ${JSON.stringify(result).slice(0,200)}`;
+      return `Heart analysis result: ${JSON.stringify(result).slice(0, 200)}`;
     }
 
     if (type === "diabetes") {
       if (result?.result || result?.riskLevel || result?.risk_score) {
-        const r = result.result ?? result.riskLevel ?? result.risk_score ?? result.riskScore;
+        const r =
+          result.result ??
+          result.riskLevel ??
+          result.risk_score ??
+          result.riskScore;
         return `Diabetes risk analysis: ${r}.`;
       }
       if (typeof result === "string") return `Diabetes analysis: ${result}`;
-      return `Diabetes analysis result: ${JSON.stringify(result).slice(0,200)}`;
+      return `Diabetes analysis result: ${JSON.stringify(result).slice(
+        0,
+        200
+      )}`;
     }
 
-    return `${type} diagnostic: ${JSON.stringify(result).slice(0,200)}`;
+    return `${type} diagnostic: ${JSON.stringify(result).slice(0, 200)}`;
   } catch (err) {
     return `${type} diagnostic result.`;
   }
@@ -672,7 +693,11 @@ function SkinAnalysis() {
             fileType: selectedFile?.type,
           },
           result: data,
-          sentence: buildDiagnosticSentence("skin", { fileName: selectedFile?.name }, data),
+          sentence: buildDiagnosticSentence(
+            "skin",
+            { fileName: selectedFile?.name },
+            data
+          ),
         });
       } catch (e) {
         console.error("Failed to save skin diagnostic result:", e);

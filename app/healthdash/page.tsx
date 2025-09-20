@@ -452,14 +452,20 @@ export default function Dashboard() {
                             {diagLoading ? (
                               <div>Loading diagnostics...</div>
                             ) : diagnostics.length === 0 ? (
-                              <div className="text-sm text-slate-500">No diagnostics yet</div>
+                              <div className="text-sm text-slate-500">
+                                No diagnostics yet
+                              </div>
                             ) : (
                               <ul className="space-y-2">
                                 {diagnostics.map((d) => (
                                   <li key={d.id} className="text-sm">
                                     <div className="font-medium">{d.type}</div>
-                                    <div className="text-slate-600">{d.sentence || JSON.stringify(d.result)}</div>
-                                    <div className="text-xs text-slate-400">{new Date(d.timestamp).toLocaleString()}</div>
+                                    <div className="text-slate-600">
+                                      {d.sentence || JSON.stringify(d.result)}
+                                    </div>
+                                    <div className="text-xs text-slate-400">
+                                      {new Date(d.timestamp).toLocaleString()}
+                                    </div>
                                   </li>
                                 ))}
                               </ul>
