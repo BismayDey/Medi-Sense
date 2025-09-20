@@ -15,8 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { db, auth } from "@/lib/firebase";
-import { addDiagnosticResult } from "@/lib/firebase-service";
 import { Progress } from "@/components/ui/progress";
 import {
   Microscope,
@@ -42,68 +40,12 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
-// Build a short human-readable sentence summarizing a diagnostic result
-function buildDiagnosticSentence(
-  type: string,
-  inputs: any,
-  result: any
-): string {
-  try {
-    if (type === "skin") {
-      if (result?.predicted_class) {
-        const conf = result.confidence
-          ? `${Number(result.confidence).toFixed(2)}%`
-          : "unknown confidence";
-        return `Skin analysis predicted ${result.predicted_class} with ${conf}.`;
-      }
-      return `Skin analysis result: ${JSON.stringify(result).slice(0, 200)}`;
-    }
-
-    if (type === "heart") {
-      if (result?.riskLevel || result?.risk_score || result?.riskScore) {
-        const level =
-          result.riskLevel ||
-          result.risk_level ||
-          result.riskScore ||
-          result.risk_score ||
-          "unknown";
-        const score =
-          result.riskScore ?? result.risk_score ?? result.score ?? null;
-        return score
-          ? `Heart risk: ${level} (score ${score}).`
-          : `Heart risk: ${level}.`;
-      }
-      if (typeof result === "string") return `Heart analysis: ${result}`;
-      return `Heart analysis result: ${JSON.stringify(result).slice(0, 200)}`;
-    }
-
-    if (type === "diabetes") {
-      if (result?.result || result?.riskLevel || result?.risk_score) {
-        const r =
-          result.result ??
-          result.riskLevel ??
-          result.risk_score ??
-          result.riskScore;
-        return `Diabetes risk analysis: ${r}.`;
-      }
-      if (typeof result === "string") return `Diabetes analysis: ${result}`;
-      return `Diabetes analysis result: ${JSON.stringify(result).slice(
-        0,
-        200
-      )}`;
-    }
-
-    return `${type} diagnostic: ${JSON.stringify(result).slice(0, 200)}`;
-  } catch (err) {
-    return `${type} diagnostic result.`;
-  }
-}
-
 export default function Home() {
   const [activeTab, setActiveTab] = useState("skin");
   const [statsVisible, setStatsVisible] = useState(false);
   const statsRef = useRef(null);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
+
   // Intersection Observer for animations
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -114,6 +56,7 @@ export default function Home() {
       },
       { threshold: 0.1 }
     );
+
     if (statsRef.current) {
       observer.observe(statsRef.current);
     }
@@ -683,26 +626,6 @@ function SkinAnalysis() {
       const data = await response.json();
       setResult(data);
 
-      // Save diagnostic result to Firestore (non-blocking for the UI)
-      try {
-        await addDiagnosticResult({
-          type: "skin",
-          inputs: {
-            fileName: selectedFile?.name,
-            fileSize: selectedFile?.size,
-            fileType: selectedFile?.type,
-          },
-          result: data,
-          sentence: buildDiagnosticSentence(
-            "skin",
-            { fileName: selectedFile?.name },
-            data
-          ),
-        });
-      } catch (e) {
-        console.error("Failed to save skin diagnostic result:", e);
-      }
-
       const endTime = Date.now();
       setResponseTime((endTime - startTime) / 1000);
     } catch (error) {
@@ -916,23 +839,6 @@ function HeartRiskAnalysis() {
 
       const data = await response.json();
       setResult(data.result || data.error);
-      // Save heart diagnostic result to Firestore (non-blocking)
-      try {
-        const payload = {
-          type: "heart",
-          inputs: apiData,
-          result: data,
-          sentence: buildDiagnosticSentence("heart", apiData, data),
-        };
-        console.debug(
-          "Saving heart diagnostic. uid=",
-          auth.currentUser?.uid,
-          payload
-        );
-        await addDiagnosticResult(payload);
-      } catch (err) {
-        console.error("Failed to save heart diagnostic result:", err);
-      }
     } catch (error) {
       console.error("Error analyzing heart risk:", error);
       setResult("Error fetching data. Please try again.");
